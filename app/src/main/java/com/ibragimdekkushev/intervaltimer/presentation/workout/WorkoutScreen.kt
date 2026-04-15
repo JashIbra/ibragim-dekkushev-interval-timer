@@ -58,7 +58,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -79,7 +78,13 @@ import com.ibragimdekkushev.intervaltimer.presentation.ui.theme.TextPrimary
 import com.ibragimdekkushev.intervaltimer.presentation.ui.theme.TextSecondary
 import kotlin.math.ceil
 
-private data class BadgeStyle(val bg: Color, val fg: Color, val dot: Color?, val label: String)
+private data class BadgeStyle(
+    val bg: Color,
+    val fg: Color,
+    val dot: Color?,
+    val label: String,
+    val icon: ImageVector? = null,
+)
 private enum class ItemStatus { Upcoming, Current, Completed }
 
 @Composable
@@ -295,7 +300,6 @@ private fun WorkoutTopBar(state: WorkoutUiState.Ready, onBack: () -> Unit) {
             Text(
                 text = state.timer.title,
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
                 color = TextPrimary,
             )
         }
@@ -308,7 +312,7 @@ private fun WorkoutTopBar(state: WorkoutUiState.Ready, onBack: () -> Unit) {
 
 @Composable
 private fun StatusBadge(state: WorkoutUiState.Ready) {
-    val (bg, fg, dot, label) = when (state.status) {
+    val (bg, fg, dot, label, icon) = when (state.status) {
         TimerStatus.Idle -> BadgeStyle(
             Color.Transparent,
             TextPrimary,
@@ -324,10 +328,11 @@ private fun StatusBadge(state: WorkoutUiState.Ready) {
         )
 
         TimerStatus.Paused -> BadgeStyle(
-            OrangeLight,
-            OrangeAccent,
-            OrangeAccent,
-            stringResource(R.string.status_paused)
+            bg = OrangeLight,
+            fg = OrangeAccent,
+            dot = null,
+            label = stringResource(R.string.status_paused),
+            icon = Icons.Default.Pause,
         )
 
         TimerStatus.Finished -> BadgeStyle(
@@ -341,24 +346,33 @@ private fun StatusBadge(state: WorkoutUiState.Ready) {
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(bg)
             .padding(horizontal = if (isTransparent) 0.dp else 10.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (dot != null) {
-            Box(
-                modifier = Modifier
-                    .size(6.dp)
-                    .clip(CircleShape)
-                    .background(dot),
-            )
-            Spacer(Modifier.width(6.dp))
+        when {
+            icon != null -> {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = fg,
+                    modifier = Modifier.size(14.dp),
+                )
+                Spacer(Modifier.width(5.dp))
+            }
+            dot != null -> {
+                Box(
+                    modifier = Modifier
+                        .size(6.dp)
+                        .clip(CircleShape)
+                        .background(dot),
+                )
+                Spacer(Modifier.width(6.dp))
+            }
         }
         Text(
             text = label,
             color = fg,
             style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.SemiBold,
         )
     }
 }
@@ -414,9 +428,8 @@ private fun TimerCard(state: WorkoutUiState.Ready) {
     ) {
         Text(
             text = label,
-            style = MaterialTheme.typography.labelMedium,
+            style = MaterialTheme.typography.labelLarge,
             color = labelColor,
-            fontWeight = FontWeight.Bold,
         )
         Spacer(Modifier.height(8.dp))
 
@@ -425,14 +438,12 @@ private fun TimerCard(state: WorkoutUiState.Ready) {
                 text = currentInterval.title,
                 style = MaterialTheme.typography.titleMedium,
                 color = TextPrimary,
-                fontWeight = FontWeight.SemiBold,
             )
             Spacer(Modifier.height(16.dp))
             Text(
                 text = if (state.status == TimerStatus.Idle) formatMs(state.totalRemainingMs)
                 else formatMs(state.remainingInCurrentIntervalMs),
-                fontSize = 64.sp,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.displayLarge,
                 color = accent,
             )
             Spacer(Modifier.height(4.dp))
@@ -453,8 +464,7 @@ private fun TimerCard(state: WorkoutUiState.Ready) {
         } else {
             Text(
                 text = formatMs(state.timer.totalTime * 1000L),
-                fontSize = 56.sp,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.displayMedium,
                 color = accent,
             )
             Text(
@@ -511,7 +521,6 @@ private fun StatCard(modifier: Modifier, value: String, label: String) {
         Text(
             text = value,
             style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
             color = TextPrimary,
         )
         Spacer(Modifier.height(4.dp))
@@ -539,7 +548,6 @@ private fun IntervalsHeader(state: WorkoutUiState.Ready, modifier: Modifier = Mo
         Text(
             text = stringResource(R.string.intervals_title),
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
             color = TextPrimary,
         )
         Text(
@@ -649,8 +657,7 @@ private fun IntervalBullet(index: Int, status: ItemStatus) {
             Text(
                 text = (index + 1).toString(),
                 color = fg,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.labelSmall,
             )
         }
     }
@@ -687,7 +694,7 @@ private fun BottomControls(
                     Icons.Default.Pause,
                     onPause
                 )
-                SecondaryButton(stringResource(R.string.btn_reset), onReset)
+                SecondaryButton(stringResource(R.string.btn_reset), onReset, MaterialTheme.colorScheme.error)
             }
 
             TimerStatus.Paused -> {
@@ -697,7 +704,7 @@ private fun BottomControls(
                     Icons.Default.PlayArrow,
                     onResume
                 )
-                SecondaryButton(stringResource(R.string.btn_reset), onReset)
+                SecondaryButton(stringResource(R.string.btn_reset), onReset, MaterialTheme.colorScheme.error)
             }
 
             TimerStatus.Finished -> {
@@ -729,20 +736,24 @@ private fun PrimaryButton(text: String, color: Color, icon: ImageVector, onClick
             modifier = Modifier.size(20.dp),
         )
         Spacer(Modifier.width(8.dp))
-        Text(text, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        Text(text, style = MaterialTheme.typography.titleMedium)
     }
 }
 
 @Composable
-private fun SecondaryButton(text: String, onClick: () -> Unit) {
+private fun SecondaryButton(text: String, onClick: () -> Unit, color: Color = TextSecondary) {
     OutlinedButton(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .height(48.dp),
         shape = RoundedCornerShape(14.dp),
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            if (color == TextSecondary) DividerGray else color.copy(alpha = 0.4f),
+        ),
     ) {
-        Text(text, color = TextSecondary)
+        Text(text, color = color)
     }
 }
 
