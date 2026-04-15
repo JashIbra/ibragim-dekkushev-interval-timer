@@ -1,11 +1,14 @@
 package com.ibragimdekkushev.intervaltimer.presentation.ui.extention
 
-fun Throwable.toReadableMessage(): String = when (this) {
-    is java.net.UnknownHostException -> "Нет подключения к интернету"
-    is retrofit2.HttpException -> when (code()) {
-        404 -> "Тренировка не найдена. Проверьте ID."
-        else -> "Ошибка сервера (${code()})"
-    }
+import android.content.Context
+import com.ibragimdekkushev.intervaltimer.R
+import java.net.UnknownHostException
 
-    else -> "Что-то пошло не так. Попробуйте снова."
+fun Throwable.toReadableMessage(context: Context): String = when (this) {
+    is UnknownHostException -> context.getString(R.string.error_no_internet)
+    is retrofit2.HttpException -> when (code()) {
+        404 -> context.getString(R.string.error_not_found)
+        else -> context.getString(R.string.error_server, code())
+    }
+    else -> context.getString(R.string.error_unknown)
 }
