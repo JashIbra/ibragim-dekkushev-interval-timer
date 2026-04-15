@@ -79,6 +79,9 @@ import com.ibragimdekkushev.intervaltimer.presentation.ui.theme.TextPrimary
 import com.ibragimdekkushev.intervaltimer.presentation.ui.theme.TextSecondary
 import kotlin.math.ceil
 
+private data class BadgeStyle(val bg: Color, val fg: Color, val dot: Color?, val label: String)
+private enum class ItemStatus { Upcoming, Current, Completed }
+
 @Composable
 fun WorkoutScreen(
     onBack: () -> Unit,
@@ -360,8 +363,6 @@ private fun StatusBadge(state: WorkoutUiState.Ready) {
     }
 }
 
-private data class BadgeStyle(val bg: Color, val fg: Color, val dot: Color?, val label: String)
-
 @Composable
 private fun TimerCard(state: WorkoutUiState.Ready) {
     val (bg, accent, label) = when (state.status) {
@@ -548,8 +549,6 @@ private fun IntervalsHeader(state: WorkoutUiState.Ready, modifier: Modifier = Mo
         )
     }
 }
-
-private enum class ItemStatus { Upcoming, Current, Completed }
 
 private fun itemStatus(index: Int, state: WorkoutUiState.Ready): ItemStatus {
     if (state.status == TimerStatus.Finished) return ItemStatus.Completed
