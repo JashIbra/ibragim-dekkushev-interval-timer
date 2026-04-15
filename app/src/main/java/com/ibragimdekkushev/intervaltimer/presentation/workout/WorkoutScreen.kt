@@ -2,6 +2,7 @@ package com.ibragimdekkushev.intervaltimer.presentation.workout
 
 import android.app.Activity
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -43,6 +44,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -563,16 +565,32 @@ private fun IntervalItem(
     status: ItemStatus
 ) {
     val (bg, border) = when (status) {
-        ItemStatus.Current -> Green50 to Green600
+        ItemStatus.Current -> Color.White to Green600
         ItemStatus.Completed -> SurfaceGray to SurfaceGray
         ItemStatus.Upcoming -> Color.White to DividerGray
     }
+
+    val progress = if (status == ItemStatus.Current) {
+        val total = interval.duration * 1000L
+        val elapsed = total - remainingInCurrentIntervalMs
+        (elapsed.toFloat() / total.toFloat()).coerceIn(0f, 1f)
+    } else 0f
+
+    val animatedProgress by animateFloatAsState(progress, label = "ItemProgress")
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
             .background(bg)
+            .drawBehind {
+                if (animatedProgress > 0f) {
+                    drawRect(
+                        color = Green50,
+                        size = size.copy(width = size.width * animatedProgress)
+                    )
+                }
+            }
             .border(1.dp, border, RoundedCornerShape(14.dp))
             .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
