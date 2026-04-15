@@ -136,6 +136,7 @@ class WorkoutViewModel @Inject constructor(
 
     override fun onCleared() {
         observeJob?.cancel()
+        sendAction(TimerService.ACTION_STOP)
         runCatching { context.unbindService(connection) }
         super.onCleared()
     }
