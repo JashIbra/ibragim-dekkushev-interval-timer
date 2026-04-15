@@ -336,10 +336,10 @@ private fun StatusBadge(state: WorkoutUiState.Ready) {
         )
 
         TimerStatus.Finished -> BadgeStyle(
-            BlueLight,
-            BlueAccent,
-            BlueAccent,
-            stringResource(R.string.status_finished)
+            bg = Color.Transparent,
+            fg = BlueAccent,
+            dot = null,
+            label = stringResource(R.string.status_finished),
         )
     }
     val isTransparent = bg == Color.Transparent
@@ -463,13 +463,24 @@ private fun TimerCard(state: WorkoutUiState.Ready) {
             )
         } else {
             Text(
-                text = formatMs(state.timer.totalTime * 1000L),
-                style = MaterialTheme.typography.displayMedium,
+                text = stringResource(R.string.timer_great_job),
+                style = MaterialTheme.typography.titleMedium,
                 color = accent,
             )
+            Spacer(Modifier.height(16.dp))
             Text(
-                text = stringResource(R.string.timer_all_done),
-                style = MaterialTheme.typography.bodyMedium,
+                text = formatMs(state.remainingInCurrentIntervalMs),
+                style = MaterialTheme.typography.displayLarge,
+                color = accent,
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = stringResource(
+                    R.string.timer_elapsed_of_total,
+                    formatMs(totalMs),
+                    formatMs(totalMs),
+                ),
+                style = MaterialTheme.typography.bodySmall,
                 color = TextSecondary,
             )
         }

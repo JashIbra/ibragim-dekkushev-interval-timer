@@ -17,6 +17,7 @@
     <string name="timer_status_finished">ТРЕНИРОВКА ЗАВЕРШЕНА</string>
     <string name="timer_interval_progress">Интервал %1$d из %2$d</string>
     <string name="timer_all_done">Все интервалы выполнены</string>
+    <string name="timer_great_job">Отличная работа!</string>
     <string name="timer_elapsed">Прошло %1$s</string>
     <string name="timer_total">Всего %1$s</string>
     <string name="timer_elapsed_of_total">Прошло %1$s из %2$s</string>
