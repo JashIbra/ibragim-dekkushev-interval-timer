@@ -19,16 +19,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Replay
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -40,11 +38,13 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -235,6 +235,7 @@ private fun ReadyState(
                 IntervalItem(
                     index = index,
                     interval = interval,
+                    remainingInCurrentIntervalMs = state.remainingInCurrentIntervalMs,
                     status = itemStatus(index, state),
                 )
             }
@@ -257,7 +258,7 @@ private fun WorkoutTopBar(state: WorkoutUiState.Ready, onBack: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp),
-            contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center,
     ) {
         Box(
             modifier = Modifier
@@ -268,9 +269,10 @@ private fun WorkoutTopBar(state: WorkoutUiState.Ready, onBack: () -> Unit) {
                 .border(1.dp, DividerGray, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
-            IconButton(onClick = onBack, modifier = Modifier.size(44.dp)) {
+            IconButton(onClick = onBack) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    imageVector = Icons.Default.ArrowBackIosNew,
+                    modifier = Modifier.size(16.dp),
                     contentDescription = stringResource(R.string.cd_back),
                     tint = TextPrimary,
                 )
@@ -312,8 +314,19 @@ private fun StatusBadge(state: WorkoutUiState.Ready) {
             formatMs(state.totalRemainingMs)
         )
 
-        TimerStatus.Paused -> BadgeStyle(OrangeLight, OrangeAccent, OrangeAccent, stringResource(R.string.status_paused))
-        TimerStatus.Finished -> BadgeStyle(BlueLight, BlueAccent, BlueAccent, stringResource(R.string.status_finished))
+        TimerStatus.Paused -> BadgeStyle(
+            OrangeLight,
+            OrangeAccent,
+            OrangeAccent,
+            stringResource(R.string.status_paused)
+        )
+
+        TimerStatus.Finished -> BadgeStyle(
+            BlueLight,
+            BlueAccent,
+            BlueAccent,
+            stringResource(R.string.status_finished)
+        )
     }
     val isTransparent = bg == Color.Transparent
     Row(
@@ -346,10 +359,29 @@ private data class BadgeStyle(val bg: Color, val fg: Color, val dot: Color?, val
 @Composable
 private fun TimerCard(state: WorkoutUiState.Ready) {
     val (bg, accent, label) = when (state.status) {
-        TimerStatus.Idle -> Triple(Color.White, TextPrimary, stringResource(R.string.timer_status_idle))
-        TimerStatus.Running -> Triple(Green50, Green700, stringResource(R.string.timer_status_running))
-        TimerStatus.Paused -> Triple(OrangeLight, OrangeAccent, stringResource(R.string.timer_status_paused))
-        TimerStatus.Finished -> Triple(Color.White, BlueAccent, stringResource(R.string.timer_status_finished))
+        TimerStatus.Idle -> Triple(
+            Color.White,
+            TextPrimary,
+            stringResource(R.string.timer_status_idle)
+        )
+
+        TimerStatus.Running -> Triple(
+            Green50,
+            Green700,
+            stringResource(R.string.timer_status_running)
+        )
+
+        TimerStatus.Paused -> Triple(
+            OrangeLight,
+            OrangeAccent,
+            stringResource(R.string.timer_status_paused)
+        )
+
+        TimerStatus.Finished -> Triple(
+            Color.White,
+            BlueAccent,
+            stringResource(R.string.timer_status_finished)
+        )
     }
     val labelColor = if (state.status == TimerStatus.Idle) TextSecondary else accent
     val borderColor = when (state.status) {
@@ -390,7 +422,8 @@ private fun TimerCard(state: WorkoutUiState.Ready) {
             )
             Spacer(Modifier.height(16.dp))
             Text(
-                text = formatMs(state.remainingInCurrentIntervalMs),
+                text = if (state.status == TimerStatus.Idle) formatMs(state.totalRemainingMs)
+                else formatMs(state.remainingInCurrentIntervalMs),
                 fontSize = 64.sp,
                 fontWeight = FontWeight.Bold,
                 color = accent,
@@ -523,7 +556,12 @@ private fun itemStatus(index: Int, state: WorkoutUiState.Ready): ItemStatus {
 }
 
 @Composable
-private fun IntervalItem(index: Int, interval: Interval, status: ItemStatus) {
+private fun IntervalItem(
+    index: Int,
+    remainingInCurrentIntervalMs: Long,
+    interval: Interval,
+    status: ItemStatus
+) {
     val (bg, border) = when (status) {
         ItemStatus.Current -> Green50 to Green600
         ItemStatus.Completed -> SurfaceGray to SurfaceGray
@@ -550,7 +588,8 @@ private fun IntervalItem(index: Int, interval: Interval, status: ItemStatus) {
             textDecoration = if (status == ItemStatus.Completed) TextDecoration.LineThrough else null,
         )
         Text(
-            text = formatMs(interval.duration * 1000L),
+            text = if (status == ItemStatus.Current) formatMs(remainingInCurrentIntervalMs)
+            else formatMs(interval.duration * 1000L),
             style = MaterialTheme.typography.bodyMedium,
             color = if (status == ItemStatus.Current) Green700 else TextSecondary,
             fontWeight = if (status == ItemStatus.Current) FontWeight.SemiBold else FontWeight.Normal,
@@ -613,19 +652,40 @@ private fun BottomControls(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         when (status) {
-            TimerStatus.Idle -> PrimaryButton(stringResource(R.string.btn_start), Green600, Icons.Default.PlayArrow, onStart)
+            TimerStatus.Idle -> PrimaryButton(
+                stringResource(R.string.btn_start),
+                Green600,
+                Icons.Default.PlayArrow,
+                onStart
+            )
+
             TimerStatus.Running -> {
-                PrimaryButton(stringResource(R.string.btn_pause), OrangeAccent, Icons.Default.Pause, onPause)
+                PrimaryButton(
+                    stringResource(R.string.btn_pause),
+                    OrangeAccent,
+                    Icons.Default.Pause,
+                    onPause
+                )
                 SecondaryButton(stringResource(R.string.btn_reset), onReset)
             }
 
             TimerStatus.Paused -> {
-                PrimaryButton(stringResource(R.string.btn_resume), Green600, Icons.Default.PlayArrow, onResume)
+                PrimaryButton(
+                    stringResource(R.string.btn_resume),
+                    Green600,
+                    Icons.Default.PlayArrow,
+                    onResume
+                )
                 SecondaryButton(stringResource(R.string.btn_reset), onReset)
             }
 
             TimerStatus.Finished -> {
-                PrimaryButton(stringResource(R.string.btn_restart), BlueAccent, Icons.Default.Replay, onStart)
+                PrimaryButton(
+                    stringResource(R.string.btn_restart),
+                    BlueAccent,
+                    Icons.Default.Replay,
+                    onStart
+                )
                 SecondaryButton(stringResource(R.string.btn_new_workout), onBack)
             }
         }
