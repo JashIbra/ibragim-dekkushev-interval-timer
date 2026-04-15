@@ -19,6 +19,7 @@
     <string name="timer_all_done">Все интервалы выполнены</string>
     <string name="timer_elapsed">Прошло %1$s</string>
     <string name="timer_total">Всего %1$s</string>
+    <string name="timer_elapsed_of_total">Прошло %1$s из %2$s</string>
     <string name="stat_total_time">Общее время</string>
     <string name="stat_intervals">Интервалов</string>
     <string name="intervals_title">Интервалы</string>

@@ -63,7 +63,6 @@ import com.ibragimdekkushev.intervaltimer.presentation.ui.theme.DividerGray
 import com.ibragimdekkushev.intervaltimer.presentation.ui.theme.Green50
 import com.ibragimdekkushev.intervaltimer.presentation.ui.theme.Green600
 import com.ibragimdekkushev.intervaltimer.presentation.ui.theme.Green700
-import com.ibragimdekkushev.intervaltimer.presentation.ui.theme.Green900
 import com.ibragimdekkushev.intervaltimer.presentation.ui.theme.IntervalTimerTheme
 import com.ibragimdekkushev.intervaltimer.presentation.ui.theme.OrangeAccent
 import com.ibragimdekkushev.intervaltimer.presentation.ui.theme.OrangeLight
@@ -233,19 +232,34 @@ private fun ReadyState(
 
 @Composable
 private fun WorkoutTopBar(state: WorkoutUiState.Ready, onBack: () -> Unit) {
-    Row(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+            contentAlignment = Alignment.Center,
     ) {
-        IconButton(onClick = onBack) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(R.string.cd_back),
-            )
+        Box(
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .size(44.dp)
+                .clip(CircleShape)
+                .background(Color.White)
+                .border(1.dp, DividerGray, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            IconButton(onClick = onBack, modifier = Modifier.size(44.dp)) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.cd_back),
+                    tint = TextPrimary,
+                )
+            }
         }
-        Column(modifier = Modifier.weight(1f)) {
+
+        Column(
+            modifier = Modifier.padding(horizontal = 56.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
             Text(
                 text = state.timer.title,
                 style = MaterialTheme.typography.titleMedium,
@@ -258,8 +272,10 @@ private fun WorkoutTopBar(state: WorkoutUiState.Ready, onBack: () -> Unit) {
                 color = TextSecondary,
             )
         }
-        StatusBadge(state)
-        Spacer(Modifier.width(8.dp))
+
+        Box(modifier = Modifier.align(Alignment.CenterEnd)) {
+            StatusBadge(state)
+        }
     }
 }
 
@@ -267,15 +283,15 @@ private fun WorkoutTopBar(state: WorkoutUiState.Ready, onBack: () -> Unit) {
 private fun StatusBadge(state: WorkoutUiState.Ready) {
     val (bg, fg, dot, label) = when (state.status) {
         TimerStatus.Idle -> BadgeStyle(
-            SurfaceGray,
-            TextSecondary,
-            null,
+            Color.Transparent,
+            TextPrimary,
+            Green600,
             formatMs(state.totalRemainingMs)
         )
 
         TimerStatus.Running -> BadgeStyle(
-            Green50,
-            Green900,
+            Color.Transparent,
+            TextPrimary,
             Green600,
             formatMs(state.totalRemainingMs)
         )
@@ -283,11 +299,12 @@ private fun StatusBadge(state: WorkoutUiState.Ready) {
         TimerStatus.Paused -> BadgeStyle(OrangeLight, OrangeAccent, OrangeAccent, stringResource(R.string.status_paused))
         TimerStatus.Finished -> BadgeStyle(BlueLight, BlueAccent, BlueAccent, stringResource(R.string.status_finished))
     }
+    val isTransparent = bg == Color.Transparent
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(12.dp))
             .background(bg)
-            .padding(horizontal = 10.dp, vertical = 6.dp),
+            .padding(horizontal = if (isTransparent) 0.dp else 10.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (dot != null) {
@@ -316,7 +333,7 @@ private fun TimerCard(state: WorkoutUiState.Ready) {
         TimerStatus.Idle -> Triple(SurfaceGray, TextSecondary, stringResource(R.string.timer_status_idle))
         TimerStatus.Running -> Triple(Green50, Green700, stringResource(R.string.timer_status_running))
         TimerStatus.Paused -> Triple(OrangeLight, OrangeAccent, stringResource(R.string.timer_status_paused))
-        TimerStatus.Finished -> Triple(BlueLight, BlueAccent, stringResource(R.string.timer_status_finished))
+        TimerStatus.Finished -> Triple(Color.White, BlueAccent, stringResource(R.string.timer_status_finished))
     }
 
     val currentInterval = state.timer.intervals[state.currentIntervalIndex]
@@ -330,6 +347,7 @@ private fun TimerCard(state: WorkoutUiState.Ready) {
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(bg)
+            .border(1.dp, if (state.status == TimerStatus.Finished) BlueLight else Color.Transparent, RoundedCornerShape(20.dp))
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -356,8 +374,17 @@ private fun TimerCard(state: WorkoutUiState.Ready) {
                 color = accent,
             )
             Spacer(Modifier.height(4.dp))
+            val subtitle = if (state.status == TimerStatus.Idle) {
+                stringResource(R.string.stat_total_time)
+            } else {
+                stringResource(
+                    R.string.timer_elapsed_of_total,
+                    formatMs(elapsedMs),
+                    formatMs(totalMs),
+                )
+            }
             Text(
-                text = stringResource(R.string.timer_interval_progress, state.currentIntervalIndex + 1, state.timer.intervals.size),
+                text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
                 color = TextSecondary,
             )
@@ -387,23 +414,6 @@ private fun TimerCard(state: WorkoutUiState.Ready) {
             trackColor = Color.White,
         )
 
-        Spacer(Modifier.height(8.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Text(
-                text = stringResource(R.string.timer_elapsed, formatMs(elapsedMs)),
-                style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary,
-            )
-            Text(
-                text = stringResource(R.string.timer_total, formatMs(totalMs)),
-                style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary,
-            )
-        }
     }
 }
 
@@ -431,7 +441,8 @@ private fun StatCard(modifier: Modifier, value: String, label: String) {
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(SurfaceGray)
+            .background(Color.White)
+            .border(1.dp, DividerGray, RoundedCornerShape(16.dp))
             .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -493,7 +504,7 @@ private fun itemStatus(index: Int, state: WorkoutUiState.Ready): ItemStatus {
 private fun IntervalItem(index: Int, interval: Interval, status: ItemStatus) {
     val (bg, border) = when (status) {
         ItemStatus.Current -> Green50 to Green600
-        ItemStatus.Completed -> SurfaceGray to DividerGray
+        ItemStatus.Completed -> SurfaceGray to SurfaceGray
         ItemStatus.Upcoming -> Color.White to DividerGray
     }
 
@@ -528,10 +539,15 @@ private fun IntervalItem(index: Int, interval: Interval, status: ItemStatus) {
 @Composable
 private fun IntervalBullet(index: Int, status: ItemStatus) {
     val bg = when (status) {
-        ItemStatus.Current, ItemStatus.Completed -> Green600
+        ItemStatus.Current -> Green600
+        ItemStatus.Completed -> DividerGray
         ItemStatus.Upcoming -> SurfaceGray
     }
-    val fg = if (status == ItemStatus.Upcoming) TextSecondary else Color.White
+    val fg = when (status) {
+        ItemStatus.Current -> Color.White
+        ItemStatus.Completed -> TextSecondary
+        ItemStatus.Upcoming -> TextSecondary
+    }
 
     Box(
         modifier = Modifier
