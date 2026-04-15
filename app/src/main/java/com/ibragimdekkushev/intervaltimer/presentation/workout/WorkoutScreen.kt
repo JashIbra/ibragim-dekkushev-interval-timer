@@ -88,6 +88,27 @@ fun WorkoutScreen(
         activity?.moveTaskToBack(true)
     }
 
+    val notificationPermission =
+        androidx.activity.compose.rememberLauncherForActivityResult(
+            contract = androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
+        ) {
+            viewModel.start()
+        }
+
+    val ctx = LocalContext.current
+    val onStartWithPermission: () -> Unit = start@{
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            val granted = androidx.core.content.ContextCompat.checkSelfPermission(
+                ctx,
+                android.Manifest.permission.POST_NOTIFICATIONS,
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+            if (granted) viewModel.start()
+            else notificationPermission.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            viewModel.start()
+        }
+    }
+
     WorkoutContent(
         uiState = uiState,
         onBack = onBack,
