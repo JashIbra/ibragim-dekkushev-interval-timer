@@ -1,40 +1,14 @@
 <resources>
-    <string name="app_name">Интервальный таймер</string>
-
+    <string name="app_name">Interval Timer</string>
     <string name="load_title">Интервальный таймер</string>
     <string name="load_subtitle">Введите ID тренировки для загрузки программы интервалов</string>
     <string name="load_id_label">ID тренировки</string>
     <string name="load_loading">Загрузка…</string>
     <string name="load_retry">Повторить</string>
     <string name="load_button">Загрузить</string>
-
-    <string name="cd_back">Назад</string>
-    <string name="status_paused">Пауза</string>
-    <string name="status_finished">Завершена</string>
-    <string name="timer_status_idle">ГОТОВО К СТАРТУ</string>
-    <string name="timer_status_running">ВЫПОЛНЯЕТСЯ</string>
-    <string name="timer_status_paused">НА ПАУЗЕ</string>
-    <string name="timer_status_finished">ТРЕНИРОВКА ЗАВЕРШЕНА</string>
-    <string name="timer_interval_progress">Интервал %1$d из %2$d</string>
-    <string name="timer_all_done">Все интервалы выполнены</string>
-    <string name="timer_elapsed">Прошло %1$s</string>
-    <string name="timer_total">Всего %1$s</string>
-    <string name="stat_total_time">Общее время</string>
-    <string name="stat_intervals">Интервалов</string>
-    <string name="intervals_title">Интервалы</string>
-    <string name="btn_start">Старт</string>
-    <string name="btn_pause">Пауза</string>
-    <string name="btn_reset">Сбросить тренировку</string>
-    <string name="btn_resume">Продолжить</string>
-    <string name="btn_restart">Запустить заново</string>
-    <string name="btn_new_workout">Новая тренировка</string>
-    <string name="btn_back">Назад</string>
-
     <string name="error_invalid_id">Введите корректный ID</string>
     <string name="error_no_internet">Нет подключения к интернету</string>
     <string name="error_not_found">Тренировка не найдена. Проверьте ID.</string>
     <string name="error_server">Ошибка сервера (%1$d)</string>
     <string name="error_unknown">Что-то пошло не так. Попробуйте снова.</string>
-    <string name="error_load_failed">Не удалось загрузить тренировку</string>
-
 </resources>
