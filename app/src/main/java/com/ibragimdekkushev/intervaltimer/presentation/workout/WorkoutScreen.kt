@@ -1,7 +1,12 @@
 package com.ibragimdekkushev.intervaltimer.presentation.workout
 
+import android.Manifest
 import android.app.Activity
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -54,6 +59,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ibragimdekkushev.intervaltimer.R
@@ -81,31 +87,29 @@ fun WorkoutScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val activity = LocalContext.current as? Activity
 
-    val isActive = uiState is WorkoutUiState.Ready &&
-            (uiState as WorkoutUiState.Ready).status.let {
-                it == TimerStatus.Running || it == TimerStatus.Paused
-            }
+    val isActive = uiState is WorkoutUiState.Ready && (uiState as WorkoutUiState.Ready).status.let {
+        it == TimerStatus.Running || it == TimerStatus.Paused
+    }
 
     BackHandler(enabled = isActive) {
         activity?.moveTaskToBack(true)
     }
 
-    val notificationPermission =
-        androidx.activity.compose.rememberLauncherForActivityResult(
-            contract = androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
-        ) {
-            viewModel.start()
-        }
+    val notificationPermission = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+    ) {
+        viewModel.start()
+    }
 
     val ctx = LocalContext.current
     val onStartWithPermission: () -> Unit = start@{
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            val granted = androidx.core.content.ContextCompat.checkSelfPermission(
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val granted = ContextCompat.checkSelfPermission(
                 ctx,
-                android.Manifest.permission.POST_NOTIFICATIONS,
-            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+                Manifest.permission.POST_NOTIFICATIONS,
+            ) == PackageManager.PERMISSION_GRANTED
             if (granted) viewModel.start()
-            else notificationPermission.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            else notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
         } else {
             viewModel.start()
         }

@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.IBinder
 import android.os.SystemClock
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import com.ibragimdekkushev.intervaltimer.domain.model.IntervalTimer
 import com.ibragimdekkushev.intervaltimer.domain.repository.IntervalTimerRepository
 import com.ibragimdekkushev.intervaltimer.presentation.workout.TimerStatus
@@ -36,8 +37,11 @@ data class TimerRuntimeState(
 @AndroidEntryPoint
 class TimerService : Service() {
 
-    @Inject lateinit var repository: IntervalTimerRepository
-    @Inject lateinit var soundPlayer: SoundPlayer
+    @Inject
+    lateinit var repository: IntervalTimerRepository
+
+    @Inject
+    lateinit var soundPlayer: SoundPlayer
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var tickJob: Job? = null
@@ -63,6 +67,7 @@ class TimerService : Service() {
                 val timerId = intent.getIntExtra(EXTRA_TIMER_ID, -1)
                 if (timerId >= 0) handleStart(timerId)
             }
+
             ACTION_PAUSE -> handlePause()
             ACTION_RESUME -> handleResume()
             ACTION_RESET -> handleReset()
@@ -228,7 +233,7 @@ class TimerService : Service() {
 
     private fun hasNotificationPermission(): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return true
-        return androidx.core.content.ContextCompat.checkSelfPermission(
+        return ContextCompat.checkSelfPermission(
             this,
             android.Manifest.permission.POST_NOTIFICATIONS,
         ) == android.content.pm.PackageManager.PERMISSION_GRANTED

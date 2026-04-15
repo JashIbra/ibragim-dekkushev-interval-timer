@@ -5,12 +5,14 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ibragimdekkushev.intervaltimer.R
 import com.ibragimdekkushev.intervaltimer.domain.model.IntervalTimer
 import com.ibragimdekkushev.intervaltimer.domain.repository.IntervalTimerRepository
+import com.ibragimdekkushev.intervaltimer.presentation.workout.service.TimerRuntimeState
 import com.ibragimdekkushev.intervaltimer.presentation.workout.service.TimerService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -60,6 +62,14 @@ class WorkoutViewModel @Inject constructor(
         bindService()
     }
 
+    fun start() = sendAction(TimerService.ACTION_START, withTimerId = true, asForeground = true)
+
+    fun pause() = sendAction(TimerService.ACTION_PAUSE)
+
+    fun resume() = sendAction(TimerService.ACTION_RESUME)
+
+    fun reset() = sendAction(TimerService.ACTION_RESET)
+
     private fun loadTimer() {
         viewModelScope.launch {
             repository.getIntervalTimer(timerId)
@@ -70,8 +80,9 @@ class WorkoutViewModel @Inject constructor(
                     }
                 }
                 .onFailure {
-                    _uiState.value =
-                        WorkoutUiState.Error(context.getString(R.string.error_load_failed))
+                    _uiState.value = WorkoutUiState.Error(
+                        context.getString(R.string.error_load_failed)
+                    )
                 }
         }
     }
@@ -81,7 +92,7 @@ class WorkoutViewModel @Inject constructor(
         context.bindService(intent, connection, Context.BIND_AUTO_CREATE)
     }
 
-    private fun onRuntimeUpdate(runtime: com.ibragimdekkushev.intervaltimer.presentation.workout.service.TimerRuntimeState?) {
+    private fun onRuntimeUpdate(runtime: TimerRuntimeState?) {
         if (runtime == null) {
             val t = timer ?: return
             _uiState.value = idleState(t)
@@ -107,14 +118,6 @@ class WorkoutViewModel @Inject constructor(
         totalRemainingMs = t.totalTime * 1000L,
     )
 
-    fun start() = sendAction(TimerService.ACTION_START, withTimerId = true, asForeground = true)
-
-    fun pause() = sendAction(TimerService.ACTION_PAUSE)
-
-    fun resume() = sendAction(TimerService.ACTION_RESUME)
-
-    fun reset() = sendAction(TimerService.ACTION_RESET)
-
     private fun sendAction(
         action: String,
         withTimerId: Boolean = false,
@@ -125,7 +128,7 @@ class WorkoutViewModel @Inject constructor(
             if (withTimerId) putExtra(TimerService.EXTRA_TIMER_ID, timerId)
         }
         if (asForeground) {
-            androidx.core.content.ContextCompat.startForegroundService(context, intent)
+            ContextCompat.startForegroundService(context, intent)
         } else {
             context.startService(intent)
         }

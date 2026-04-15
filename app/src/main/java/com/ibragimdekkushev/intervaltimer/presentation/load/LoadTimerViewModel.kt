@@ -17,7 +17,7 @@ import javax.inject.Inject
 @HiltViewModel
 class LoadTimerViewModel @Inject constructor(
     private val repository: IntervalTimerRepository,
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<LoadTimerUiState>(LoadTimerUiState.Idle)
