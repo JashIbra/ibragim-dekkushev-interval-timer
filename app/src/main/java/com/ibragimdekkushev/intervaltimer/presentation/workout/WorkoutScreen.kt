@@ -91,7 +91,7 @@ fun WorkoutScreen(
     WorkoutContent(
         uiState = uiState,
         onBack = onBack,
-        onStart = viewModel::start,
+        onStart = onStartWithPermission,
         onPause = viewModel::pause,
         onResume = viewModel::resume,
         onReset = viewModel::reset,
@@ -266,11 +266,6 @@ private fun WorkoutTopBar(state: WorkoutUiState.Ready, onBack: () -> Unit) {
                 fontWeight = FontWeight.SemiBold,
                 color = TextPrimary,
             )
-            Text(
-                text = "ID ${state.timer.id}",
-                style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary,
-            )
         }
 
         Box(modifier = Modifier.align(Alignment.CenterEnd)) {
@@ -330,10 +325,16 @@ private data class BadgeStyle(val bg: Color, val fg: Color, val dot: Color?, val
 @Composable
 private fun TimerCard(state: WorkoutUiState.Ready) {
     val (bg, accent, label) = when (state.status) {
-        TimerStatus.Idle -> Triple(SurfaceGray, TextSecondary, stringResource(R.string.timer_status_idle))
+        TimerStatus.Idle -> Triple(Color.White, TextPrimary, stringResource(R.string.timer_status_idle))
         TimerStatus.Running -> Triple(Green50, Green700, stringResource(R.string.timer_status_running))
         TimerStatus.Paused -> Triple(OrangeLight, OrangeAccent, stringResource(R.string.timer_status_paused))
         TimerStatus.Finished -> Triple(Color.White, BlueAccent, stringResource(R.string.timer_status_finished))
+    }
+    val labelColor = if (state.status == TimerStatus.Idle) TextSecondary else accent
+    val borderColor = when (state.status) {
+        TimerStatus.Idle -> DividerGray
+        TimerStatus.Finished -> BlueLight
+        else -> Color.Transparent
     }
 
     val currentInterval = state.timer.intervals[state.currentIntervalIndex]
@@ -347,14 +348,14 @@ private fun TimerCard(state: WorkoutUiState.Ready) {
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(bg)
-            .border(1.dp, if (state.status == TimerStatus.Finished) BlueLight else Color.Transparent, RoundedCornerShape(20.dp))
+            .border(1.dp, borderColor, RoundedCornerShape(20.dp))
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
-            color = accent,
+            color = labelColor,
             fontWeight = FontWeight.Bold,
         )
         Spacer(Modifier.height(8.dp))
@@ -408,7 +409,7 @@ private fun TimerCard(state: WorkoutUiState.Ready) {
             progress = { progress },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(8.dp)
+                .height(5.dp)
                 .clip(RoundedCornerShape(4.dp)),
             color = accent,
             trackColor = Color.White,

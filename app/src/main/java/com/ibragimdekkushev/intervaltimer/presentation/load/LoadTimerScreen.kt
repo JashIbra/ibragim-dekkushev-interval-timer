@@ -1,6 +1,7 @@
 package com.ibragimdekkushev.intervaltimer.presentation.load
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -122,24 +123,33 @@ private fun LoadTimerContent(
 
             Spacer(Modifier.weight(1f))
 
-            OutlinedTextField(
-                value = idInput,
-                onValueChange = { newValue ->
-                    idInput = newValue
-                    onInputChanged()
-                },
-                label = { Text(stringResource(R.string.load_id_label)) },
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                isError = isError,
-                enabled = !isLoading,
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Done,
-                ),
-                keyboardActions = KeyboardActions(onDone = { onLoad(idInput) }),
-                shape = RoundedCornerShape(12.dp),
-            )
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.load_id_label),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                OutlinedTextField(
+                    value = idInput,
+                    onValueChange = { newValue ->
+                        idInput = newValue
+                        onInputChanged()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = isError,
+                    enabled = !isLoading,
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Done,
+                    ),
+                    keyboardActions = KeyboardActions(onDone = { onLoad(idInput) }),
+                    shape = RoundedCornerShape(12.dp),
+                )
+            }
 
             if (isError) {
                 Spacer(Modifier.height(6.dp))
