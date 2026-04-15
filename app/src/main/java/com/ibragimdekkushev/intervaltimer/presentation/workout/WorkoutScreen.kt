@@ -25,6 +25,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Replay
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -448,10 +452,11 @@ private fun StatCard(modifier: Modifier, value: String, label: String) {
 
 @Composable
 private fun IntervalsHeader(state: WorkoutUiState.Ready, modifier: Modifier = Modifier) {
-    val done = when (state.status) {
-        TimerStatus.Idle -> 0
-        TimerStatus.Finished -> state.timer.intervals.size
-        else -> state.currentIntervalIndex
+    val total = state.timer.intervals.size
+    val countText = when (state.status) {
+        TimerStatus.Idle -> stringResource(R.string.intervals_count, total)
+        TimerStatus.Finished -> stringResource(R.string.intervals_progress, total, total)
+        else -> stringResource(R.string.intervals_progress, state.currentIntervalIndex, total)
     }
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -465,7 +470,7 @@ private fun IntervalsHeader(state: WorkoutUiState.Ready, modifier: Modifier = Mo
             color = TextPrimary,
         )
         Text(
-            text = "$done / ${state.timer.intervals.size}",
+            text = countText,
             style = MaterialTheme.typography.bodySmall,
             color = TextSecondary,
         )
@@ -570,19 +575,19 @@ private fun BottomControls(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         when (status) {
-            TimerStatus.Idle -> PrimaryButton(stringResource(R.string.btn_start), Green600, onStart)
+            TimerStatus.Idle -> PrimaryButton(stringResource(R.string.btn_start), Green600, Icons.Default.PlayArrow, onStart)
             TimerStatus.Running -> {
-                PrimaryButton(stringResource(R.string.btn_pause), OrangeAccent, onPause)
+                PrimaryButton(stringResource(R.string.btn_pause), OrangeAccent, Icons.Default.Pause, onPause)
                 SecondaryButton(stringResource(R.string.btn_reset), onReset)
             }
 
             TimerStatus.Paused -> {
-                PrimaryButton(stringResource(R.string.btn_resume), Green600, onResume)
+                PrimaryButton(stringResource(R.string.btn_resume), Green600, Icons.Default.PlayArrow, onResume)
                 SecondaryButton(stringResource(R.string.btn_reset), onReset)
             }
 
             TimerStatus.Finished -> {
-                PrimaryButton(stringResource(R.string.btn_restart), BlueAccent, onStart)
+                PrimaryButton(stringResource(R.string.btn_restart), BlueAccent, Icons.Default.Replay, onStart)
                 SecondaryButton(stringResource(R.string.btn_new_workout), onBack)
             }
         }
@@ -590,7 +595,7 @@ private fun BottomControls(
 }
 
 @Composable
-private fun PrimaryButton(text: String, color: Color, onClick: () -> Unit) {
+private fun PrimaryButton(text: String, color: Color, icon: ImageVector, onClick: () -> Unit) {
     Button(
         onClick = onClick,
         modifier = Modifier
@@ -599,6 +604,12 @@ private fun PrimaryButton(text: String, color: Color, onClick: () -> Unit) {
         shape = RoundedCornerShape(14.dp),
         colors = ButtonDefaults.buttonColors(containerColor = color, contentColor = Color.White),
     ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(20.dp),
+        )
+        Spacer(Modifier.width(8.dp))
         Text(text, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
     }
 }
