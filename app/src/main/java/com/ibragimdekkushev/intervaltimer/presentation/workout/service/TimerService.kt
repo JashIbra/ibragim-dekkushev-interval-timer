@@ -6,6 +6,7 @@ import android.content.pm.ServiceInfo
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
+import android.os.PowerManager
 import android.os.SystemClock
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -58,6 +59,8 @@ class TimerService : Service() {
     private var pausedAtMs: Long = 0L
     private var isForeground = false
 
+    private var wakeLock: PowerManager.WakeLock? = null
+
     inner class LocalBinder : Binder() {
         val state: StateFlow<TimerRuntimeState?> get() = _state.asStateFlow()
     }
@@ -106,6 +109,7 @@ class TimerService : Service() {
             totalRemainingMs = timer.totalTime * 1000L,
         )
         promoteToForeground()
+        acquireWakeLock(timer.totalTime * 1000L)
         soundPlayer.playStart()
         voiceAnnouncer.announce(timer.intervals.first().title)
         launchTickLoop()
@@ -116,6 +120,7 @@ class TimerService : Service() {
         if (current.status != TimerStatus.Running) return
         pausedAtMs = SystemClock.elapsedRealtime()
         _state.value = current.copy(status = TimerStatus.Paused)
+        releaseWakeLock()
         updateNotification()
     }
 
@@ -124,6 +129,7 @@ class TimerService : Service() {
         if (current.status != TimerStatus.Paused) return
         accumulatedPauseMs += SystemClock.elapsedRealtime() - pausedAtMs
         _state.value = current.copy(status = TimerStatus.Running)
+        acquireWakeLock(current.totalRemainingMs)
         updateNotification()
     }
 
@@ -142,12 +148,14 @@ class TimerService : Service() {
                 totalRemainingMs = timer.totalTime * 1000L,
             )
         }
+        releaseWakeLock()
         dropForeground()
     }
 
     private fun stopEverything() {
         tickJob?.cancel()
         _state.value = null
+        releaseWakeLock()
         dropForeground()
         stopSelf()
     }
@@ -210,6 +218,7 @@ class TimerService : Service() {
             totalRemainingMs = 0L,
         )
         updateNotification()
+        releaseWakeLock()
         stopForeground(STOP_FOREGROUND_DETACH)
         isForeground = false
     }
@@ -272,7 +281,23 @@ class TimerService : Service() {
         tickJob?.cancel()
         scope.coroutineContext[Job]?.cancel()
         voiceAnnouncer.stop()
+        releaseWakeLock()
         super.onDestroy()
+    }
+
+    private fun acquireWakeLock(timeoutMs: Long) {
+        val pm = getSystemService(POWER_SERVICE) as? PowerManager ?: return
+        val lock = wakeLock ?: pm.newWakeLock(
+            PowerManager.PARTIAL_WAKE_LOCK,
+            WAKE_LOCK_TAG,
+        ).also { it.setReferenceCounted(false); wakeLock = it }
+        if (lock.isHeld) return
+        val timeout = (timeoutMs + 60_000L).coerceAtMost(2 * 60 * 60 * 1000L)
+        lock.acquire(timeout)
+    }
+
+    private fun releaseWakeLock() {
+        wakeLock?.takeIf { it.isHeld }?.release()
     }
 
     companion object {
@@ -282,5 +307,6 @@ class TimerService : Service() {
         const val ACTION_RESET = "intervaltimer.action.RESET"
         const val ACTION_STOP = "intervaltimer.action.STOP"
         const val EXTRA_TIMER_ID = "timer_id"
+        private const val WAKE_LOCK_TAG = "IntervalTimer:WorkoutWakeLock"
     }
 }
