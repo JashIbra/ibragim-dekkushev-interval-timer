@@ -12,7 +12,9 @@ import androidx.core.content.ContextCompat
 import com.ibragimdekkushev.intervaltimer.domain.model.IntervalTimer
 import com.ibragimdekkushev.intervaltimer.domain.repository.IntervalTimerRepository
 import com.ibragimdekkushev.intervaltimer.presentation.workout.TimerStatus
+import com.ibragimdekkushev.intervaltimer.R
 import com.ibragimdekkushev.intervaltimer.presentation.workout.sound.SoundPlayer
+import com.ibragimdekkushev.intervaltimer.presentation.workout.sound.VoiceAnnouncer
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -42,6 +44,9 @@ class TimerService : Service() {
 
     @Inject
     lateinit var soundPlayer: SoundPlayer
+
+    @Inject
+    lateinit var voiceAnnouncer: VoiceAnnouncer
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var tickJob: Job? = null
@@ -102,6 +107,7 @@ class TimerService : Service() {
         )
         promoteToForeground()
         soundPlayer.playStart()
+        voiceAnnouncer.announce(timer.intervals.first().title)
         launchTickLoop()
     }
 
@@ -179,6 +185,7 @@ class TimerService : Service() {
             if (remaining < durationMs) {
                 if (index != current.currentIntervalIndex) {
                     soundPlayer.playIntervalTransition()
+                    voiceAnnouncer.announce(interval.title)
                 }
                 _state.value = current.copy(
                     currentIntervalIndex = index,
@@ -194,6 +201,7 @@ class TimerService : Service() {
     private fun finish(t: IntervalTimer) {
         tickJob?.cancel()
         soundPlayer.playFinish()
+        voiceAnnouncer.announce(getString(R.string.voice_finished))
         _state.value = TimerRuntimeState(
             timer = t,
             status = TimerStatus.Finished,
@@ -263,6 +271,7 @@ class TimerService : Service() {
     override fun onDestroy() {
         tickJob?.cancel()
         scope.coroutineContext[Job]?.cancel()
+        voiceAnnouncer.stop()
         super.onDestroy()
     }
 

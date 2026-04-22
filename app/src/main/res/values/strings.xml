@@ -41,6 +41,8 @@
     <string name="error_unknown">Что-то пошло не так. Попробуйте снова.</string>
     <string name="error_load_failed">Не удалось загрузить тренировку</string>
 
+    <string name="voice_finished">Тренировка завершена</string>
+
     <string name="notification_channel_workout">Тренировка</string>
     <string name="notification_channel_workout_desc">Отображение прогресса активной тренировки</string>
 
