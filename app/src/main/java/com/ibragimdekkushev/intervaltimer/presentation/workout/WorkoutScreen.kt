@@ -79,8 +79,8 @@ import com.ibragimdekkushev.intervaltimer.presentation.ui.theme.TextSecondary
 import kotlin.math.ceil
 
 private data class BadgeStyle(
-    val bg: Color,
-    val fg: Color,
+    val background: Color,
+    val foreground: Color,
     val dot: Color?,
     val label: String,
     val icon: ImageVector? = null,
@@ -328,16 +328,16 @@ private fun StatusBadge(state: WorkoutUiState.Ready) {
         )
 
         TimerStatus.Paused -> BadgeStyle(
-            bg = OrangeLight,
-            fg = OrangeAccent,
+            background = OrangeLight,
+            foreground = OrangeAccent,
             dot = null,
             label = stringResource(R.string.status_paused),
             icon = Icons.Default.Pause,
         )
 
         TimerStatus.Finished -> BadgeStyle(
-            bg = Color.Transparent,
-            fg = BlueAccent,
+            background = Color.Transparent,
+            foreground = BlueAccent,
             dot = null,
             label = stringResource(R.string.status_finished),
         )
