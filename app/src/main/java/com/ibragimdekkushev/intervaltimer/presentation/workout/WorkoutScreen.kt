@@ -359,6 +359,7 @@ private fun StatusBadge(state: WorkoutUiState.Ready) {
                 )
                 Spacer(Modifier.width(5.dp))
             }
+
             dot != null -> {
                 Box(
                     modifier = Modifier
@@ -692,38 +693,46 @@ private fun BottomControls(
     ) {
         when (status) {
             TimerStatus.Idle -> PrimaryButton(
-                stringResource(R.string.btn_start),
-                Green600,
-                Icons.Default.PlayArrow,
-                onStart
+                text = stringResource(R.string.btn_start),
+                color = Green600,
+                icon = Icons.Default.PlayArrow,
+                onClick = onStart
             )
 
             TimerStatus.Running -> {
                 PrimaryButton(
-                    stringResource(R.string.btn_pause),
-                    OrangeAccent,
-                    Icons.Default.Pause,
-                    onPause
+                    text = stringResource(R.string.btn_pause),
+                    color = OrangeAccent,
+                    icon = Icons.Default.Pause,
+                    onClick = onPause
                 )
-                SecondaryButton(stringResource(R.string.btn_reset), onReset, MaterialTheme.colorScheme.error)
+                SecondaryButton(
+                    text = stringResource(R.string.btn_reset),
+                    onClick = onReset,
+                    color = MaterialTheme.colorScheme.error
+                )
             }
 
             TimerStatus.Paused -> {
                 PrimaryButton(
-                    stringResource(R.string.btn_resume),
-                    Green600,
-                    Icons.Default.PlayArrow,
-                    onResume
+                    text = stringResource(R.string.btn_resume),
+                    color = Green600,
+                    icon = Icons.Default.PlayArrow,
+                    onClick = onResume
                 )
-                SecondaryButton(stringResource(R.string.btn_reset), onReset, MaterialTheme.colorScheme.error)
+                SecondaryButton(
+                    text = stringResource(R.string.btn_reset),
+                    onClick = onReset,
+                    color = MaterialTheme.colorScheme.error
+                )
             }
 
             TimerStatus.Finished -> {
                 PrimaryButton(
-                    stringResource(R.string.btn_restart),
-                    BlueAccent,
-                    Icons.Default.Replay,
-                    onStart
+                    text = stringResource(R.string.btn_restart),
+                    color = BlueAccent,
+                    icon = Icons.Default.Replay,
+                    onClick = onStart
                 )
                 SecondaryButton(stringResource(R.string.btn_new_workout), onBack)
             }
